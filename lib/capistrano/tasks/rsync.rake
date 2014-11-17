@@ -4,7 +4,7 @@ namespace :rsync do
   end
 
   def local_build_path
-    @local_build_path||= fetch(:tmp_dir) + "/_deploy"
+    @local_build_path||= "#{fetch(:tmp_dir)}/_deploy"
   end
 
   task :check do
@@ -31,12 +31,19 @@ namespace :rsync do
     end
   end
 
+  task :update_local do
+    run_locally do
+      within local_build_path do
+        strategy.update_local
+      end
+    end
+  end
+
   desc "Stage and rsync to the server (or its cache)."
-  task update: [:prepare, :clone] do
+  task update: [:prepare, :clone, :update_local] do
     on release_roles(:all) do |server|
       run_locally do
         within local_build_path do
-          strategy.update_local
           strategy.update(server)
         end
       end
