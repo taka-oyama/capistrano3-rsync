@@ -33,11 +33,11 @@ namespace :rsync do
 
   desc "Stage and rsync to the server (or its cache)."
   task update: [:prepare, :clone] do
-    on release_roles(:all) do
+    on release_roles(:all) do |server|
       run_locally do
         within local_build_path do
           strategy.update_local
-          strategy.update
+          strategy.update(server)
         end
       end
     end

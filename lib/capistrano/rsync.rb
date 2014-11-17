@@ -37,9 +37,9 @@ class Capistrano::Rsync < Capistrano::SCM
       end
     end
 
-    def update
-      user = role.user + "@" if !role.user.nil?
-      host = role.hostname
+    def update(server)
+      user = server.user + "@" if !server.user.nil?
+      host = server.hostname
       rsync_cmd = [:rsync]
       rsync_cmd << %w[--archive --recursive --delete --delete-excluded --exclude .git*]
       rsync_cmd << "#{local_build_path}/"
