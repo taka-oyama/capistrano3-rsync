@@ -4,7 +4,7 @@ namespace :rsync do
   end
 
   def local_build_path
-    @local_build_path||= "#{fetch(:tmp_dir)}/_deploy"
+    @local_build_path||= "#{fetch(:tmp_dir)}/deploy"
   end
 
   task :check do

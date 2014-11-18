@@ -32,8 +32,10 @@ class Capistrano::Rsync < Capistrano::SCM
       context.execute :git, "submodule update --init --recursive"
       context.execute :touch, ".rsync"
 
-      Bundler.with_clean_env do
-        context.execute :bundle, "package --all --quiet"
+      if defined?(Bundler)
+        Bundler.with_clean_env do
+          context.execute :bundle, "package --all --quiet"
+        end
       end
     end
 
