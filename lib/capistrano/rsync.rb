@@ -13,9 +13,7 @@ class Capistrano::Rsync < Capistrano::SCM
     end
 
     def clone
-      within repo_path do
-        mkdir repo_path
-      end
+      mkdir repo_path
     end
 
     def test_local

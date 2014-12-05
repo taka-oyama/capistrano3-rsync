@@ -13,10 +13,12 @@ namespace :rsync do
 
   task :prepare do
     on release_roles :all do
-      if strategy.test
-        info t(:mirror_exists, at: repo_path)
-      else
-        strategy.clone
+      within repo_path do
+        if strategy.test
+          info t(:mirror_exists, at: repo_path)
+        else
+          strategy.clone
+        end
       end
     end
   end
