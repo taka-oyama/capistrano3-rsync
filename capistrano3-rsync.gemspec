@@ -1,6 +1,6 @@
 Gem::Specification.new do |gem|
   gem.name = "capistrano3-rsync"
-  gem.version = "0.2.2"
+  gem.version = "0.2.13"
   gem.homepage = "http://gitlab.dev.playnext.co.jp/takayasu.oyama/capistrano3-rsync"
   gem.summary = "Deploy with Capistrano using Rsync."
   gem.description = ""

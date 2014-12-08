@@ -14,23 +14,9 @@ class Capistrano::Rsync < Capistrano::SCM
 
     def clone
       context.execute :mkdir, "--parents", repo_path
-      system(`mkdir --parents #{local_build_path}`)
     end
 
     def update(server)
-      if !File.directory?(local_build_path)
-        context.execute :git, "clone", "--mirror --recursive", repo_url, local_build_path
-      end
-      context.execute :git, "remote update --prune"
-      context.execute :git, "submodule update --init --recursive"
-      context.execute :touch, ".rsync"
-
-      if defined?(Bundler)
-        Bundler.with_clean_env do
-          context.execute :bundle, "package --all --quiet"
-        end
-      end
-
       user = !server.user.nil? ? "#{server.user}@" : ""
       rsync_cmd = [:rsync]
       rsync_cmd << %w[--archive --recursive --delete --delete-excluded --exclude .git*]

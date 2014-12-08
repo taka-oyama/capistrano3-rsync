@@ -4,10 +4,30 @@ namespace :rsync do
   end
 
   def local_build_path
-    @local_build_path||= "#{fetch(:tmp_dir)}/deploy"
+    @local_build_path||= "#{fetch(:tmp_dir)}/#{fetch(:application)}/deploy"
   end
 
-  task :check do
+  set :git_environmental_variables, ->() {
+    {
+      git_askpass: "/bin/echo",
+      git_ssh: "#{fetch(:tmp_dir)}/#{fetch(:application)}/git-ssh.sh"
+    }
+  }
+
+  desc "Upload the git wrapper script, this script guarantees that we can script git without getting an interactive prompt"
+  task :git_wrapper do
+    on release_roles(:all) do
+      run_locally do
+        execute :mkdir, "-p", local_build_path
+        File.open("#{fetch(:tmp_dir)}/#{fetch(:application)}/git-ssh.sh", "w") do |f|
+          f.write("#!/bin/sh -e\nexec /usr/bin/ssh -o PasswordAuthentication=no -o StrictHostKeyChecking=no \"$@\"\n")
+          f.chmod(0755)
+        end
+      end
+    end
+  end
+
+  task check: :git_wrapper do
     on release_roles(:all) do
       run_locally do
         with fetch(:git_environmental_variables) do
@@ -29,10 +49,23 @@ namespace :rsync do
 
   desc "Stage and rsync to the server (or its cache)."
   task update: :clone do
-    on release_roles(:all) do |server|
-      run_locally do
-        within local_build_path do
-          with fetch(:git_environmental_variables) do
+    run_locally do
+      within local_build_path do
+        with fetch(:git_environmental_variables) do
+          if Dir["#{local_build_path}/*"].empty?
+            execute :git, "clone", "--recursive", repo_url, local_build_path
+          end
+          execute :git, "remote update --prune"
+          execute :git, "submodule update --init"
+          execute :touch, ".rsync"
+
+          if defined?(Bundler)
+            Bundler.with_clean_env do
+              execute :bundle, "package --all --quiet"
+            end
+          end
+
+          on release_roles(:all) do |server|
             strategy.update(server)
           end
         end
