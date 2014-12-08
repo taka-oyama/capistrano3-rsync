@@ -8,7 +8,11 @@ namespace :rsync do
   end
 
   task :check do
-    # Everything's a-okay inherently!
+    on release_roles :all do
+      with fetch(:git_environmental_variables) do
+        strategy.check
+      end
+    end
   end
 
   task clone: :check do
@@ -26,7 +30,9 @@ namespace :rsync do
     on release_roles(:all) do |server|
       run_locally do
         within local_build_path do
-          strategy.update(server)
+          with fetch(:git_environmental_variables) do
+            strategy.update(server)
+          end
         end
       end
     end

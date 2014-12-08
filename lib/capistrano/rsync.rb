@@ -14,6 +14,7 @@ class Capistrano::Rsync < Capistrano::SCM
 
     def clone
       context.execute :mkdir, "--parents", repo_path
+      system(`mkdir --parents #{local_build_path}`)
     end
 
     def update(server)
