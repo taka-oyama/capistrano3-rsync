@@ -11,8 +11,8 @@ namespace :rsync do
     # Everything's a-okay inherently!
   end
 
-  task :prepare do
-    on release_roles :all do
+  task clone: :check do
+    on release_roles(:all) do
       if strategy.test
         info t(:mirror_exists, at: repo_path)
       else
@@ -21,26 +21,8 @@ namespace :rsync do
     end
   end
 
-  task clone: :check do
-    run_locally do
-      if strategy.test_local
-        info t(:mirror_exists, at: local_build_path)
-      else
-        strategy.clone_local
-      end
-    end
-  end
-
-  task :update_local do
-    run_locally do
-      within local_build_path do
-        strategy.update_local
-      end
-    end
-  end
-
   desc "Stage and rsync to the server (or its cache)."
-  task update: [:prepare, :clone, :update_local] do
+  task update: :clone do
     on release_roles(:all) do |server|
       run_locally do
         within local_build_path do
@@ -52,7 +34,7 @@ namespace :rsync do
 
   desc "Copy the code to the releases directory."
   task create_release: :update do
-    on release_roles :all do
+    on release_roles(:all) do
       within repo_path do
         strategy.release
       end

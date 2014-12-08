@@ -9,24 +9,18 @@ class Capistrano::Rsync < Capistrano::SCM
     end
 
     def check
-      true
+      context.execute :git, "ls-remote --heads", repo_url
     end
 
     def clone
-      context.execute :mkdir, "-p", repo_path
+      context.execute :mkdir, "--parents", repo_path
     end
 
-    def test_local
-      test! File.directory?(local_build_path)
-    end
-
-    def clone_local
-      context.execute :git, "clone", repo_url, local_build_path, "--recursive"
-    end
-
-    def update_local
-      context.execute :git, "fetch --quiet --all --prune"
-      context.execute :git, "reset --hard origin/#{fetch(:branch)}"
+    def update(server)
+      if !File.directory?(local_build_path)
+        context.execute :git, "clone", "--mirror --recursive", repo_url, local_build_path
+      end
+      context.execute :git, "remote update --prune"
       context.execute :git, "submodule update --init --recursive"
       context.execute :touch, ".rsync"
 
@@ -35,15 +29,12 @@ class Capistrano::Rsync < Capistrano::SCM
           context.execute :bundle, "package --all --quiet"
         end
       end
-    end
 
-    def update(server)
-      user = server.user + "@" if !server.user.nil?
-      host = server.hostname
+      user = !server.user.nil? ? "#{server.user}@" : ""
       rsync_cmd = [:rsync]
       rsync_cmd << %w[--archive --recursive --delete --delete-excluded --exclude .git*]
       rsync_cmd << "#{local_build_path}/"
-      rsync_cmd << "#{user}#{host}:#{repo_path}/"
+      rsync_cmd << "#{user}#{server.hostname}:#{repo_path}/"
       context.execute *rsync_cmd
     end
 
@@ -56,7 +47,7 @@ class Capistrano::Rsync < Capistrano::SCM
     end
 
     def fetch_revision
-      context.capture(:git, "rev-parse --short #{fetch(:branch)}")
+      context.capture :git, "rev-parse --short #{fetch(:branch)}"
     end
   end
 end
