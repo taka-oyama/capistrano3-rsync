@@ -71,7 +71,7 @@ namespace :rsync do
           end
         end
 
-        on release_roles(:all) do |server|
+        release_roles(:all).each do |server|
           strategy.update(server)
         end
       end
