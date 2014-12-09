@@ -60,11 +60,10 @@ namespace :rsync do
     run_locally do
       within local_build_path do
         if Dir["#{local_build_path}/*"].empty?
-          git :clone, repo_url, local_build_path, "--recursive"
+          git :clone, repo_url, local_build_path
           bundle :install, "--path vendor/bundle" if defined?(Bundler)
         end
-        git "remote update --prune"
-        git "submodule update --init"
+        git :reset, "--hard", fetch(:branch)
         bundle :package, "--all --quiet" if defined?(Bundler)
         execute :touch, ".rsync"
       end
