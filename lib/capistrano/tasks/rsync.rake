@@ -59,16 +59,14 @@ namespace :rsync do
   task update: :clone do
     run_locally do
       within local_build_path do
-        with fetch(:git_environmental_variables) do
-          if Dir["#{local_build_path}/*"].empty?
-            git :clone, repo_url, local_build_path, "--recursive"
-            bundle :install, "--path vendor/bundle" if defined?(Bundler)
-          end
-          git "remote update --prune"
-          git "submodule update --init"
-          bundle :package, "--all --quiet" if defined?(Bundler)
-          execute :touch, ".rsync"
+        if Dir["#{local_build_path}/*"].empty?
+          git :clone, repo_url, local_build_path, "--recursive"
+          bundle :install, "--path vendor/bundle" if defined?(Bundler)
         end
+        git "remote update --prune"
+        git "submodule update --init"
+        bundle :package, "--all --quiet" if defined?(Bundler)
+        execute :touch, ".rsync"
       end
     end
     on release_roles(:all) do |server|
