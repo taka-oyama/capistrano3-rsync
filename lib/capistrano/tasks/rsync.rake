@@ -7,6 +7,20 @@ namespace :rsync do
     @local_build_path||= "#{fetch(:tmp_dir)}/#{fetch(:application)}/deploy"
   end
 
+  def bundle(*args)
+    Bundler.with_clean_env do
+      args.unshift :bundle
+      execute *args
+    end
+  end
+
+  def git(*args)
+    with fetch(:git_environmental_variables) do
+      args.unshift :git
+      execute *args
+    end
+  end
+
   set :git_environmental_variables, ->() {
     {
       git_askpass: "/bin/echo",
@@ -28,13 +42,7 @@ namespace :rsync do
   end
 
   task check: :git_wrapper do
-    on release_roles(:all) do
-      run_locally do
-        with fetch(:git_environmental_variables) do
-          strategy.check
-        end
-      end
-    end
+    strategy.check
   end
 
   task clone: :check do
@@ -53,28 +61,18 @@ namespace :rsync do
       within local_build_path do
         with fetch(:git_environmental_variables) do
           if Dir["#{local_build_path}/*"].empty?
-            execute :git, "clone", "--recursive", repo_url, local_build_path
-            if defined?(Bundler)
-              Bundler.with_clean_env do
-                execute :bundle, "install --path vendor/bundle"
-              end
-            end
+            git :clone, repo_url, local_build_path, "--recursive"
+            bundle :install, "--path vendor/bundle" if defined?(Bundler)
           end
-          execute :git, "remote update --prune"
-          execute :git, "submodule update --init"
+          git "remote update --prune"
+          git "submodule update --init"
+          bundle :package, "--all --quiet" if defined?(Bundler)
           execute :touch, ".rsync"
-
-          if defined?(Bundler)
-            Bundler.with_clean_env do
-              execute :bundle, "package --all --quiet"
-            end
-          end
-        end
-
-        release_roles(:all).each do |server|
-          strategy.update(server)
         end
       end
+    end
+    on release_roles(:all) do |server|
+      strategy.update(server)
     end
   end
 

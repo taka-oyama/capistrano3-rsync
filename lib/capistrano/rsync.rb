@@ -9,7 +9,9 @@ class Capistrano::Rsync < Capistrano::SCM
     end
 
     def check
-      context.execute :git, "ls-remote --heads", repo_url
+      context.run_locally do
+        git "ls-remote --heads", repo_url
+      end
     end
 
     def clone
@@ -17,12 +19,14 @@ class Capistrano::Rsync < Capistrano::SCM
     end
 
     def update(server)
-      user = !server.user.nil? ? "#{server.user}@" : ""
-      rsync_cmd = [:rsync]
-      rsync_cmd << %w[--archive --recursive --delete --delete-excluded --exclude .git*]
-      rsync_cmd << "#{local_build_path}/"
-      rsync_cmd << "#{user}#{server.hostname}:#{repo_path}/"
-      context.execute *rsync_cmd
+      context.run_locally do
+        user = !server.user.nil? ? "#{server.user}@" : ""
+        rsync_cmd = [:rsync]
+        rsync_cmd << %w[--archive --recursive --delete --delete-excluded --exclude .git*]
+        rsync_cmd << "#{local_build_path}/"
+        rsync_cmd << "#{user}#{server.hostname}:#{repo_path}/"
+        execute *rsync_cmd
+      end
     end
 
     def release
