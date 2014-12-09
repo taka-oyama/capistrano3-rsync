@@ -91,10 +91,4 @@ namespace :rsync do
       end
     end
   end
-
-  Rake::Task["deploy:cleanup"].enhance do
-    run_locally do
-      execute :rm, "-rf", local_build_path
-    end
-  end
 end
