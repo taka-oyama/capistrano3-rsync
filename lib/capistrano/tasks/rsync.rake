@@ -54,6 +54,11 @@ namespace :rsync do
         with fetch(:git_environmental_variables) do
           if Dir["#{local_build_path}/*"].empty?
             execute :git, "clone", "--recursive", repo_url, local_build_path
+            if defined?(Bundler)
+              Bundler.with_clean_env do
+                execute :bundle, "install --path vendor/bundle"
+              end
+            end
           end
           execute :git, "remote update --prune"
           execute :git, "submodule update --init"
@@ -64,10 +69,10 @@ namespace :rsync do
               execute :bundle, "package --all --quiet"
             end
           end
+        end
 
-          on release_roles(:all) do |server|
-            strategy.update(server)
-          end
+        on release_roles(:all) do |server|
+          strategy.update(server)
         end
       end
     end
