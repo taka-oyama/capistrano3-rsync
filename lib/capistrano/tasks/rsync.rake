@@ -64,6 +64,7 @@ namespace :rsync do
           bundle :install, "--path vendor/bundle" if defined?(Bundler)
         end
         git :reset, "--hard", fetch(:branch)
+        git :pull, "--all"
         bundle :package, "--all --quiet" if defined?(Bundler)
         execute :touch, ".rsync"
       end
