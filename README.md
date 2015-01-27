@@ -11,7 +11,7 @@ Just add the following lines to your `config/deploy`.rb or `config/deploy/[RAILS
 Add the following to your application's Gemfile:
 
     gem 'capistrano', '~> 3.2'
-    gem 'capistrano3-rsync', '~> 0.1'
+    gem 'capistrano3-rsync', '~> 0.3'
 
 
 ## Usage
