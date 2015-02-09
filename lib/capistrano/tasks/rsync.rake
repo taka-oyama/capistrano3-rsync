@@ -62,6 +62,8 @@ namespace :rsync do
         if Dir["#{local_build_path}/*"].empty?
           git :clone, "-b", fetch(:branch), repo_url, local_build_path
           bundle :install, "--path vendor/bundle" if defined?(Bundler)
+        else
+          git :checkout, fetch(:branch)
         end
         git :reset, "--hard", fetch(:branch)
         git :pull, "--all", "--prune"
