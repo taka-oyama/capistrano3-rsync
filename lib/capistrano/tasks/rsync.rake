@@ -63,8 +63,8 @@ namespace :rsync do
           git :clone, "-b", fetch(:branch), repo_url, local_build_path
         else
           git :fetch, "--all"
-          git :checkout, fetch(:branch)
           git :reset, "--hard", "origin/#{fetch(:branch)}"
+          git :checkout, fetch(:branch)
         end
         if defined?(Bundler)
           bundle :install, "--path vendor/bundle"
