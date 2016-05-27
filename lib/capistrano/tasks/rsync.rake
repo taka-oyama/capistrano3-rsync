@@ -64,7 +64,6 @@ namespace :rsync do
         else
           git :fetch, "--all"
           git :reset, "--hard", "origin/#{fetch(:branch)}"
-          git :checkout, fetch(:branch)
         end
         if defined?(Bundler)
           bundle :install, "--path vendor/bundle"
